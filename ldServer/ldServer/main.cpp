@@ -7,6 +7,8 @@
 
 #include <stdio.h>
 #include <iostream>
+#include <pthread.h>
+#include <unistd.h>
 #include "analyzeBuf.h"
 #include "packetProtocol.h"
 #include "tcpServer.h"
@@ -18,6 +20,7 @@
 int main(int argc, char * argv[]) {
     std::queue<struct Pos_packet*> pQueue;
     std::queue<char *> tQueue;
-    tcp_server(argv[1], &pQueue, &tQueue);
+    
+    tcp_server(argv[1]);
     return 0;
 }

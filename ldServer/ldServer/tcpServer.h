@@ -22,6 +22,8 @@
 #include "analyzeBuf.h"
 #include "packetProtocol.h"
 
-void tcp_server(char *port, std::queue<struct Pos_packet *> *pQueue, std::queue<char *> *tQueue);
+void tcp_server(char *port);
+
+void connect_client();
 
 #endif /* tcpServer_h */

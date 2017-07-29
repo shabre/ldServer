@@ -7,17 +7,9 @@ using System.Net;
 using System.Net.Sockets;
 using PacketProtocols;
 
+//서버와의 네트워킹을 담당하는 클래스
 public class ClientNetworking : MonoBehaviour {
-        /* 
-        public void addData(List<char> data, String add){
-                char[] charData=add.ToCharArray();
-                foreach(char c in charData){
-                        data.Add(c);
-                }
-                data.Add('\n');
-        }
-        */
-
+ 
         IPEndPoint ipep = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 52380);
         Transform tr;
         Socket client;

@@ -6,6 +6,7 @@ using System;
 
 namespace PacketProtocols
 {
+	//패킷의 구조
 	public class Pos_Packet{
         private short request; //요청내용
         private short dLength; //데이터 길이
@@ -27,6 +28,7 @@ namespace PacketProtocols
 			return zPos;
 		}
 
+		//패킷의 첫 생성자
 		public Pos_Packet(short req, short len,  
 			float xp, float yp, float zp, String id){
 			request=req;
@@ -37,6 +39,7 @@ namespace PacketProtocols
 			zPos=zp;
 		}
 
+		//수신 바이트를 패킷으로 변환해주는 생성자
 		public Pos_Packet(byte[] recv){
 			request=BitConverter.ToInt16(recv, 0);
 			dLength=BitConverter.ToInt16(recv, 2);
@@ -50,7 +53,7 @@ namespace PacketProtocols
 			ID=System.Text.Encoding.UTF8.GetString(byteID);
 		}
 
-
+		//패킷을 바이트 형태로 변환
 		public Byte[] packetsToByte(){
 			int size=0;
 			byte[] req=BitConverter.GetBytes(this.request);
