@@ -11,6 +11,7 @@
 
 pthread_t tid[10000];
 bool thread_usable[10000];
+std::list<int> accp_sock_list;
 
 struct t_arg{
     int accept_socket;
@@ -34,11 +35,15 @@ void *connect_client(void *arg){
     puts("Client connected..");
     std::queue<struct Pos_packet *> pQueue;
     std::queue<char *> tQueue;
+    std::list<int>::iterator it;
     while((nbyte = read(args.accept_socket, buf, MAXLINE))>0){//연결 끊길때까지 계속 수신
         std::cout<<nbyte<<" byte received"<<std::endl;
         bufToPacket(buf, nbyte, &pQueue, &tQueue);//수신한 데이터를 packet으로 변경
-        sendPacket(args.accept_socket, &pQueue, &tQueue);//packet을 처리
+        for(it=accp_sock_list.begin(); it!=accp_sock_list.end(); it++){//접속해있는 모든 클라에게 전송
+            sendPacket(*it , &pQueue, &tQueue);//packet을 처리
+        }
     }
+    accp_sock_list.remove(args.accept_socket);
     close(args.accept_socket);
     pthread_exit(NULL);
 }
@@ -73,6 +78,7 @@ void tcp_server(char *port){
             perror("accept fail");
             exit(0);
         }
+        accp_sock_list.push_back(accp_sock);
         avail=getThreadID();//사용가능한 thread id 가져온다
         if(avail>=0){//사용가능한 thread id가 있으면
             pass_arg.accept_socket=accp_sock;

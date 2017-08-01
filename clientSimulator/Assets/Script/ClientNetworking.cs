@@ -10,7 +10,7 @@ using PacketProtocols;
 //서버와의 네트워킹을 담당하는 클래스
 public class ClientNetworking : MonoBehaviour {
  
-        IPEndPoint ipep = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 52380);
+        IPEndPoint ipep = new IPEndPoint(IPAddress.Parse("203.249.75.14"), 52380);
         Transform tr;
         Socket client;
 	void Start () {

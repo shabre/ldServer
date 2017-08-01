@@ -19,6 +19,7 @@
 #include <pthread.h>
 #include <string>
 #include <iostream>
+#include <list>
 #include "analyzeBuf.h"
 #include "packetProtocol.h"
 
