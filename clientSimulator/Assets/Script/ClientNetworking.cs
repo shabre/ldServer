@@ -14,11 +14,12 @@ public class ClientNetworking : MonoBehaviour {
         IPEndPoint ipep = new IPEndPoint(IPAddress.Parse("203.249.75.14"), 52380);
         Transform tr;
         Socket client;
+        Thread tid;
 	void Start () {
                 client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                 client.Connect(ipep);
                 ThreadStart ts=new ThreadStart(receivePacket);
-                Thread tid=new Thread(ts);
+                tid=new Thread(ts);
                 tid.Start();
 	}
 	
@@ -32,7 +33,7 @@ public class ClientNetworking : MonoBehaviour {
                 float yPos=tr.position.y;
                 float zPos=tr.position.z;
                 
-                String id = "Player1";
+                String id = "Player2";
                 len+=(short)(id.Length);
 
                 Pos_Packet pPacket = new Pos_Packet(request,len,
@@ -53,6 +54,7 @@ public class ClientNetworking : MonoBehaviour {
 	}
         void onDestroy(){
                 client.Close();
+                tid.Abort();
         }
 
         void receivePacket(){
@@ -65,7 +67,5 @@ public class ClientNetworking : MonoBehaviour {
                         Debug.Log(rPacket.getID()+" x: "+rPacket.getX()
                                 +" y: "+rPacket.getY() +" z: "+rPacket.getZ());
                 }
-                
-                
         }
 }
