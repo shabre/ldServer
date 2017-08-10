@@ -102,6 +102,7 @@ void bufToPacket(char *buf, int nbyte, std::queue<Pos_packet *> *pQueue,
                 }
             }
         }
+        pPacket->ID[pPacket->dLength]=0;
         pQueue->push(pPacket);
         printf("ID: %s x: %f y: %f z: %f\n",pPacket->ID,pPacket->xPos,pPacket->yPos,pPacket->zPos);
     }
@@ -112,7 +113,6 @@ void sendPacket(int accp_sock, std::queue<struct Pos_packet *> *pQueue, std::que
     struct Pos_packet *pPacket;
     if(pQueue->size()>0){
         pPacket=pQueue->front();
-        pQueue->pop();
         printf("send %s x: %f y: %f z: %f\n",pPacket->ID, pPacket->xPos, pPacket->yPos, pPacket->zPos);
         packetToBuf(buf, pPacket);
         write(accp_sock, buf, HSIZE+pPacket->dLength);

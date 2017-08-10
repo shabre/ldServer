@@ -39,9 +39,12 @@ void *connect_client(void *arg){
     while((nbyte = read(args.accept_socket, buf, MAXLINE))>0){//연결 끊길때까지 계속 수신
         std::cout<<nbyte<<" byte received"<<std::endl;
         bufToPacket(buf, nbyte, &pQueue, &tQueue);//수신한 데이터를 packet으로 변경
+        
+        //고쳐야 하는부분-> 모든 클라에게 모든 패킷을 다 보내야함. 현재는 하나의 패킷만 팝 해서 한개의 클라에게만 보냄
         for(it=accp_sock_list.begin(); it!=accp_sock_list.end(); it++){//접속해있는 모든 클라에게 전송
             sendPacket(*it , &pQueue, &tQueue);//packet을 처리
         }
+        pQueue.pop();
     }
     accp_sock_list.remove(args.accept_socket);
     close(args.accept_socket);
