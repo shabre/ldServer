@@ -12,6 +12,7 @@
 pthread_t tid[10000];
 bool thread_usable[10000];
 std::list<int> accp_sock_list;
+pthread_mutex_t mutex;
 
 struct t_arg{
     int accept_socket;
@@ -30,9 +31,11 @@ int getThreadID(){//사용가능한 thread id 검색
 
 void *connect_client(void *arg){
     struct t_arg args=*((struct t_arg *)arg);
+    pthread_mutex_unlock(&mutex);
     int nbyte;
     char buf[MAXLINE+1];
-    puts("Client connected..");
+    puts("Client connected");
+    std::cout<<"socket no: "<<args.accept_socket<<std::endl;
     std::queue<struct Pos_packet *> pQueue;
     std::queue<char *> tQueue;
     std::list<int>::iterator it;
@@ -54,6 +57,7 @@ void *connect_client(void *arg){
 
 void tcp_server(char *port){
     int avail;
+    pthread_mutex_init(&mutex, NULL);
     struct t_arg pass_arg;
     for(int i=0; i<10000; i++)
         thread_usable[i]=true;
@@ -73,7 +77,7 @@ void tcp_server(char *port){
     {
         perror("bind fail"); exit(0);
     }
-    listen(tcp_listen_sock, 5);
+    listen(tcp_listen_sock, 10);
     while(1) {
         //puts("Waiting clients to connect.."); // 연결요청을 기다림
         accp_sock=accept(tcp_listen_sock, (struct sockaddr *)&cliaddr, &addrlen);
@@ -81,9 +85,12 @@ void tcp_server(char *port){
             perror("accept fail");
             exit(0);
         }
+        std::cout<<"socket no: "<<accp_sock<<std::endl;
         accp_sock_list.push_back(accp_sock);
         avail=getThreadID();//사용가능한 thread id 가져온다
+        std::cout<<"thread id no: "<<avail<<std::endl;
         if(avail>=0){//사용가능한 thread id가 있으면
+            pthread_mutex_lock(&mutex);
             pass_arg.accept_socket=accp_sock;
             pass_arg.thread_num=avail;
             pthread_create(&tid[avail], NULL, connect_client, &pass_arg);

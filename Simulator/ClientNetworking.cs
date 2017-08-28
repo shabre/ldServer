@@ -10,7 +10,7 @@ using PacketProtocols;
 //서버와의 네트워킹을 담당하는 클래스
 public class ClientNetworking {
  
-        IPEndPoint ipep = new IPEndPoint(IPAddress.Parse("203.249.75.14"), 52380);
+        IPEndPoint ipep;
         Socket client;
         Thread tid;
         Queue<byte[]> pQueue, tQueue;
@@ -18,6 +18,7 @@ public class ClientNetworking {
         PlayerMove player=new PlayerMove();
         //
 	public void connect() {
+                ipep = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 52380);
                 client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                 client.Connect(ipep);
                 pQueue=new Queue<byte[]>();
@@ -29,22 +30,23 @@ public class ClientNetworking {
 	
 
 	// Update is called once per frame
-	public void frameSend () {
+	public void frameSend (String myId) {
                 while(true){
                         Thread.Sleep(100);
+                        
                         short len=0;
                         short request =1;
+                        player.NextPosition();
                         float xPos=player.getX();
                         float yPos=player.getY();
                         float zPos=player.getZ();
-                        
-                        String id = "simulator_1";
+                        String id = myId;
                         len+=(short)(id.Length);
 
                         Pos_Packet pPacket = new Pos_Packet(request,len,
                                 xPos,yPos,zPos,id);
 
-                        
+                        Console.WriteLine("send: "+pPacket.getID());
                         byte[] sbuf=pPacket.packetsToByte();
                         client.Send(sbuf);
                 }

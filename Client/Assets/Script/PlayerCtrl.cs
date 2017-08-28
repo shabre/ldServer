@@ -16,8 +16,6 @@ public class PlayerCtrl : MonoBehaviour {
                 float v = Input.GetAxis("Vertical");
                 float r = Input.GetAxis("Mouse X");
 
-        //Debug.Log("v=" + v);
-
                 Vector3 moveDir = (Vector3.forward * v) + (Vector3.right * h);
                 tr.Translate(moveDir.normalized * Time.deltaTime * speed);
                 tr.Rotate(Vector3.up * 80.0f * Time.deltaTime * r);

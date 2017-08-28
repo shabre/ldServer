@@ -6,6 +6,13 @@ using System;
 
 namespace PacketProtocols
 {
+	public struct UnitPos{
+		public String ID;
+		public float xPos;
+		public float yPos;
+		public float zPos;
+	}
+
 	//패킷의 구조
 	public class Pos_Packet{
         private short request; //요청내용
