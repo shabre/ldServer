@@ -18,7 +18,7 @@ class Simulator_main
 
     public static void Main(string[] args){
         
-        int multi=9;
+        int multi=100;
 
         ParameterizedThreadStart[] ts=new ParameterizedThreadStart[multi];
         Thread[] tid=new Thread[multi];
@@ -27,6 +27,7 @@ class Simulator_main
             ts[i] = new ParameterizedThreadStart(serverConnect);
             tid[i]=new Thread(ts[i]);
             tid[i].Start(i+1);
+            Thread.Sleep(100);
         }
         
 

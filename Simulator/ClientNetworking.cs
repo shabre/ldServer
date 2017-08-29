@@ -18,7 +18,7 @@ public class ClientNetworking {
         PlayerMove player=new PlayerMove();
         //
 	public void connect() {
-                ipep = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 52380);
+                ipep = new IPEndPoint(IPAddress.Parse("27.1.242.15"), 52380);
                 client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                 client.Connect(ipep);
                 pQueue=new Queue<byte[]>();
@@ -46,7 +46,7 @@ public class ClientNetworking {
                         Pos_Packet pPacket = new Pos_Packet(request,len,
                                 xPos,yPos,zPos,id);
 
-                        Console.WriteLine("send: "+pPacket.getID());
+                     
                         byte[] sbuf=pPacket.packetsToByte();
                         client.Send(sbuf);
                 }
@@ -62,7 +62,7 @@ public class ClientNetworking {
                 AnalyzeBuf analyzeBuf=new AnalyzeBuf();
                 while((nbyte=client.Receive(rbuf))>0){
                         //Pos_Packet rPacket=new Pos_Packet(rbuf);
-                        Console.WriteLine(nbyte+" byte received");
+                        //Console.WriteLine(nbyte+" byte received");
                         analyzeBuf.bufToPacket(rbuf,nbyte,ref pQueue,ref tQueue);
                 }
         }

@@ -85,8 +85,7 @@ public class AnalyzeBuf{
                 }
             }
             //pQueue.Enqueue(enqbuf);
-            Console.WriteLine(pPacket.getID()+" x: "+pPacket.getX()
-                                +" y: "+pPacket.getY() +" z: "+pPacket.getZ());
+            //Console.WriteLine(pPacket.getID()+" x: "+pPacket.getX()+" y: "+pPacket.getY() +" z: "+pPacket.getZ());
         }
     }
     public void sendPacket(Socket client, ref Queue<byte[]> pQueue, ref Queue<byte[]> tQueue){
