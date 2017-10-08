@@ -98,6 +98,7 @@ public class ClientNetworking : MonoBehaviour {
 
         public void updatePlayer(List<UnitPos> unitList){
                 int code;
+
                 foreach(UnitPos unit in unitList){
                         code=getPlayerCode(unit.ID);
                         Vector3 pos=new Vector3(unit.xPos,unit.yPos,unit.zPos);

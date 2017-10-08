@@ -92,8 +92,7 @@ public class AnalyzeBuf{
                 unitPos=initUnitPos(pPacket.getID(),pPacket.getX(),pPacket.getY(),pPacket.getZ());
                 otherPlayerQueue.Enqueue(unitPos);//otherplayerQueue에 입력
             }
-            Debug.Log(pPacket.getID()+" x: "+pPacket.getX()
-                                +" y: "+pPacket.getY() +" z: "+pPacket.getZ());
+            //Debug.Log(pPacket.getID()+" x: "+pPacket.getX()+" y: "+pPacket.getY() +" z: "+pPacket.getZ());
         }
     }
 
@@ -106,7 +105,7 @@ public class AnalyzeBuf{
         return newUnit;
     }
     public void handleOther(ref List<UnitPos> unitList){
-        Debug.Log("otherplayer queue size: "+otherPlayerQueue.Count);
+        //Debug.Log("otherplayer queue size: "+otherPlayerQueue.Count);
         while(otherPlayerQueue.Count>0){
             handleOtherPlayer.setList(ref unitList, (UnitPos)otherPlayerQueue.Dequeue());
         }

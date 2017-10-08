@@ -30,10 +30,10 @@ public class HandleOtherPlayer {
 	}
 
 	public void setList(ref List<UnitPos> unitList, UnitPos player){
-		Debug.Log("player code:" +getPlayerCode(player.ID));
+		//Debug.Log("player code:" +getPlayerCode(player.ID));
 		int index=0;
 		if(online[getPlayerCode(player.ID)]){//이미 등록된 유저라면
-			Debug.Log("online player: "+player.ID);
+			//Debug.Log("online player: "+player.ID);
 			foreach(UnitPos unit in unitList){
 				if(unit.ID.Equals(player.ID))
 					break;
