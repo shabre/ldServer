@@ -10,6 +10,7 @@ using System.Threading;
 
 //서버와의 네트워킹을 담당하는 클래스
 public class ClientNetworking : MonoBehaviour {
+    
         IPEndPoint ipep = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 52380);
 
         Transform tr;
@@ -17,12 +18,17 @@ public class ClientNetworking : MonoBehaviour {
         Socket client, ipcSend;
         Thread tid;
         Queue pQueue, tQueue;
-        public GameObject otherPlayer;
-        public List<UnitPos> unitList=new List<UnitPos>();
+        public GameObject otherPlayer, emptyplayer;
+        public List<int> unitList=new List<int>();
+        public Queue<int> delQueue=new Queue<int>();
+        public UnitPos[] unitArray;
         public GameObject[] playerPool;
         private Boolean[] online;
+        AnalyzeBuf analyzeBuf;
 	void Start () {
-                playerPool=new GameObject[1000];
+                analyzeBuf=new AnalyzeBuf();
+                playerPool=new GameObject[1500];
+                unitArray=new UnitPos[10000];
                 online=new Boolean[10000];
                 for(int i=0; i<10000; i++)
                         online[i]=false;
@@ -45,7 +51,7 @@ public class ClientNetworking : MonoBehaviour {
                 float yPos=tr.position.y;
                 float zPos=tr.position.z;
                 
-                String id = "Player1";
+                String id = "Player1001";
                 len+=(short)(id.Length);
 
                 Pos_Packet pPacket = new Pos_Packet(request,len,
@@ -59,7 +65,7 @@ public class ClientNetworking : MonoBehaviour {
                         Debug.Log(unit.ID);
                 }*/
                 
-                updatePlayer(unitList);
+                updatePlayer(unitList,delQueue);
 	}
         void onApplicationQuit(){
                 //Debug.Log("----------------app end------------");
@@ -71,17 +77,16 @@ public class ClientNetworking : MonoBehaviour {
         void receivePacket(){
                 int nbyte;
                 byte[] rbuf=new byte[512];
-                AnalyzeBuf analyzeBuf=new AnalyzeBuf();
                 while((nbyte=client.Receive(rbuf))>0){
                         //Pos_Packet rPacket=new Pos_Packet(rbuf);
                         //Debug.Log(nbyte+" byte received");
-                        analyzeBuf.bufToPacket(rbuf,nbyte,ref pQueue,ref tQueue);
-                        analyzeBuf.handleOther(ref unitList);
-                     
+                        //Debug.Log("pQueue Size: "+pQueue.Count);
+                        analyzeBuf.bufToPacket(rbuf,nbyte,ref pQueue,ref tQueue, ref delQueue);
+                        analyzeBuf.handleOther(ref unitList, ref unitArray); 
                 }
         }
 
-        private int getPlayerCode(String id){
+        public int getPlayerCode(String id){
         char[] number=new char[6];
         int code=0;
         int simLen="simulator_".Length;
@@ -96,21 +101,61 @@ public class ClientNetworking : MonoBehaviour {
 
 
 
-        public void updatePlayer(List<UnitPos> unitList){
-                int code;
-
-                foreach(UnitPos unit in unitList){
-                        code=getPlayerCode(unit.ID);
-                        Vector3 pos=new Vector3(unit.xPos,unit.yPos,unit.zPos);
-                        Quaternion rot=new Quaternion();
-                        if(online[code]){
-                                playerPool[code].transform.position=pos;
+        public void updatePlayer(List<int> unitList, Queue<int> delQueue){
+                //Debug.Log("unitlist size:"+unitList.Count);
+                int delUnit;
+                int index=0;
+                while(delQueue.Count>0){
+                        delUnit=delQueue.Dequeue();
+                        
+                        if(delUnit!=1001){
+                                if(online[delUnit]){
+                                        online[delUnit]=false;
+                                        analyzeBuf.deleteOnline(delUnit);//handleother script의 오프라인 설정
+                                        Destroy(playerPool[delUnit]);
+                                        index=unitList.IndexOf(delUnit);
+                                        unitList.RemoveAt(index);
+                                }
+                                else{
+                                        
+                                }
                         }
                         else{
-                                online[code]=true;
-                                playerPool[code]=Instantiate(otherPlayer,pos,rot);
-                        }
+                                Debug.Log("player server change");
+                                
+                                foreach(int unit in unitList){
+                                        analyzeBuf.deleteOnline(unit);//handleother script의 오프라인 설정
+                                        online[unit]=false;
+                                        Destroy(playerPool[unit]);
+                                }
+                                unitList.Clear();     
+                        }       
                 }
+        
+                foreach(int unit in unitList){
+                        Vector3 pos=new Vector3(unitArray[unit].xPos,unitArray[unit].yPos,unitArray[unit].zPos);
+                        Quaternion rot=new Quaternion();
+                        if(online[unit]){
+                                playerPool[unit].transform.position=pos;
+                                //playerPool[unit].transform.position=new Vector3((float)0.0,(float)0.0,(float)0.0);
+                                /* 
+                                if(playerPool[unit].transform.position.x<0){
+                                        Destroy(playerPool[unit]);
+                                        online[unit]=false;
+                                        unitList.RemoveAt(index);
+                                        index-=1;
+                                }
+                                */
+                        }
+                        else{
+                                online[unit]=true;
+                                playerPool[unit]=Instantiate(otherPlayer,pos,rot);
+                                
+                        }
+                       index+=1;
+                }
+                
+
         }
 
         //어플리케이션 종료시켜야함

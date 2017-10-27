@@ -6,6 +6,8 @@ using System;
 
 namespace PacketProtocols
 {
+	
+
 	public struct UnitPos{
 		public String ID;
 		public float xPos;
@@ -15,6 +17,8 @@ namespace PacketProtocols
 
 	//패킷의 구조
 	public class Pos_Packet{
+		public const short UPDATE=1;
+		public const short DELETE=2;
         private short request; //요청내용
         private short dLength; //데이터 길이
 		private float xPos;
@@ -33,6 +37,10 @@ namespace PacketProtocols
 		}
 		public float getZ(){
 			return zPos;
+		}
+
+		public short getRequest(){
+			return request;
 		}
 
 		//패킷의 첫 생성자

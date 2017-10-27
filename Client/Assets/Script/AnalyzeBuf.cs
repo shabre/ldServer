@@ -10,20 +10,43 @@ using PacketProtocols;
 //분석된 패킷들은 ClientNetworking queue에 삽입이 된다.
 //분석이 완료된 패킷들은 clientNetworking class에서 처리가 된다
 public class AnalyzeBuf{
+
+    private string PLAYERID="Player1001";
     private const int HSIZE=16;
     private Queue otherPlayerQueue=new Queue();
     HandleOtherPlayer handleOtherPlayer=new HandleOtherPlayer();
-    public void bufToPacket(byte[] buf,int nbyte, ref Queue pQueue, ref Queue tQueue){
+    public int getPlayerCode(String id){
+        char[] number=new char[6];
+        int code=0;
+        int nLen;
+        if(id[0]=='s')
+            nLen="simulator_".Length;
+        else
+            nLen="Player".Length;
+        id.CopyTo(nLen, number, 0, id.Length-nLen);
+        for(int i=0; i<id.Length-nLen; i++){
+                if(i>0)
+                        code*=10;
+                code+=number[i]-48;
+                }
+                return code;		
+        }
+    public void bufToPacket(byte[] buf,int nbyte, ref Queue pQueue, ref Queue tQueue, ref Queue<int> delQueue){
         int idx=0, restLen=0;
         Pos_Packet pPacket;
         UnitPos unitPos;
         short dataLen=0;
         byte[] headBuf=new byte[HSIZE];
         byte[] prev, data, rest;
+
+        
         while(idx<nbyte){//모든 패킷을 처리하기 전
+          
             if(tQueue.Count!=0){//이전 수신한 buf가 아직 모두 처리되지 않았으면
+               
                 prev=(byte[])tQueue.Dequeue();
                 if(prev[0]<HSIZE){//헤더가 잘렸을 경우
+          
                     restLen=HSIZE-prev[0];//잘린 헤더 크기를 알아낸후
                     Array.Copy(prev,1,headBuf,0,prev[0]);//headBuf에 잘린부분 복사
                     Array.Copy(buf,0,headBuf,prev[0],restLen);//버퍼의 나머지 복사
@@ -35,6 +58,7 @@ public class AnalyzeBuf{
                     idx+=dataLen;//뽑아온 데이터만큼 인덱스 증가
                 }
                 else if(prev[0]==HSIZE){//헤더가 딱 temp queue에들어갔을 경우
+                   
                     Array.Copy(prev,1,headBuf,0,HSIZE);
                     dataLen=BitConverter.ToInt16(headBuf, 2);//데이터 길이 알아냄
                     data=new byte[dataLen];
@@ -43,6 +67,7 @@ public class AnalyzeBuf{
                     idx+=dataLen;
                 }
                 else{
+                 
                     Array.Copy(prev,1,headBuf,0,HSIZE);
                     restLen=prev[0]-HSIZE;
                     dataLen=BitConverter.ToInt16(headBuf, 2);
@@ -50,11 +75,13 @@ public class AnalyzeBuf{
                     Array.Copy(prev,1+HSIZE,data,0,restLen);//템프 버퍼에 남아있는 데이터 만큼을 복사
                     Array.Copy(buf,0,data,restLen,dataLen-restLen);//버퍼에서 복사해야할 나머지 데이터
                     pPacket=new Pos_Packet(headBuf,data);
+                    
                     idx+=dataLen-restLen;
                 }
             }
             else{
                 if(nbyte-idx<HSIZE){//처리해야하는 남은 데이터에서 헤더가 잘렸을 경우
+                    
                     rest=new byte[nbyte-idx+1];
                     rest[0]=(byte)(nbyte-idx);
                     Array.Copy(buf,idx,rest,1,nbyte-idx);
@@ -64,11 +91,13 @@ public class AnalyzeBuf{
                     return;
                 }
                 else{
+                    
                     Array.Copy(buf, idx, headBuf, 0, HSIZE);
                     idx+=HSIZE;
                     dataLen=BitConverter.ToInt16(headBuf, 2);
 
                     if(dataLen>nbyte-idx){//가져와야하는 데이터 양보다 버퍼에 남은 데이터 양이 더 많을경우
+                   
                         idx-=HSIZE;
                         rest=new byte[nbyte-idx+1];
                         rest[0]=(byte)(nbyte-idx);
@@ -79,6 +108,7 @@ public class AnalyzeBuf{
                         return;
                     }
                     else{
+                
                         data=new byte[dataLen];
                         Array.Copy(buf, idx, data, 0, dataLen);
                         idx+=dataLen;
@@ -88,9 +118,22 @@ public class AnalyzeBuf{
                 }
             }
             //게임 매니저 오브젝트의 updatePosition script를 가져와야함
-            if(pPacket.getID()!="Player1"){
-                unitPos=initUnitPos(pPacket.getID(),pPacket.getX(),pPacket.getY(),pPacket.getZ());
-                otherPlayerQueue.Enqueue(unitPos);//otherplayerQueue에 입력
+            if(pPacket.getID()!=PLAYERID){
+            
+                if(pPacket.getRequest()==Pos_Packet.DELETE){//패킷이 해당 플레이어 삭제 명령이면
+                    delQueue.Enqueue(getPlayerCode(pPacket.getID()));
+                    
+                }
+                else{//패킷이 해당플레이어 업데이트 명령이면
+                    unitPos=initUnitPos(pPacket.getID(),pPacket.getX(),pPacket.getY(),pPacket.getZ());
+                    otherPlayerQueue.Enqueue(unitPos);//otherplayerQueue에 입력
+                }
+            }
+            else{
+                if(pPacket.getRequest()==Pos_Packet.DELETE){
+                    delQueue.Enqueue(getPlayerCode(pPacket.getID()));
+                }
+                
             }
             //Debug.Log(pPacket.getID()+" x: "+pPacket.getX()+" y: "+pPacket.getY() +" z: "+pPacket.getZ());
         }
@@ -104,11 +147,15 @@ public class AnalyzeBuf{
         newUnit.ID=ID;
         return newUnit;
     }
-    public void handleOther(ref List<UnitPos> unitList){
+    public void handleOther(ref List<int> unitList, ref UnitPos[] unitArray){
         //Debug.Log("otherplayer queue size: "+otherPlayerQueue.Count);
         while(otherPlayerQueue.Count>0){
-            handleOtherPlayer.setList(ref unitList, (UnitPos)otherPlayerQueue.Dequeue());
+            handleOtherPlayer.setList(ref unitList ,ref unitArray,(UnitPos)otherPlayerQueue.Dequeue());
         }
+    }
+
+    public void deleteOnline(int num){
+        handleOtherPlayer.setOffline(num);
     }
     public void sendPacket(Socket client, ref Queue pQueue, ref Queue tQueue){
         byte[] buf;

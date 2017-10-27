@@ -19,21 +19,34 @@ public class HandleOtherPlayer {
 	private int getPlayerCode(String id){
 		char[] number=new char[6];
 		int code=0;
+		int plyLen="player".Length;
 		int simLen="simulator_".Length;
-		id.CopyTo(simLen, number, 0, id.Length-simLen);
-		for(int i=0; i<id.Length-simLen; i++){
-			if(i>0)
-				code*=10;
-			code+=number[i]-48;
+		if(id[0]=='s'){//시뮬레이터의 경우
+			id.CopyTo(simLen, number, 0, id.Length-simLen);
+			for(int i=0; i<id.Length-simLen; i++){
+				if(i>0)
+					code*=10;
+				code+=number[i]-48;
+			}
+		}
+		else{
+			id.CopyTo(plyLen, number, 0, id.Length-plyLen);
+			for(int i=0; i<id.Length-plyLen; i++){
+				if(i>0)
+					code*=10;
+				code+=number[i]-48;
+			}
 		}
 		return code;		
 	}
 
-	public void setList(ref List<UnitPos> unitList, UnitPos player){
+	public void setList(ref List<int> unitList, ref UnitPos[] unitArray, UnitPos player){
 		//Debug.Log("player code:" +getPlayerCode(player.ID));
-		int index=0;
-		if(online[getPlayerCode(player.ID)]){//이미 등록된 유저라면
+		int code=getPlayerCode(player.ID);
+		
+		if(online[code]){//이미 등록된 유저라면
 			//Debug.Log("online player: "+player.ID);
+			/* 
 			foreach(UnitPos unit in unitList){
 				if(unit.ID.Equals(player.ID))
 					break;
@@ -42,10 +55,23 @@ public class HandleOtherPlayer {
 			}
 			unitList.RemoveAt(index);
 			unitList.Add(player);
+			*/
+			unitArray[code].ID=player.ID;
+			unitArray[code].xPos=player.xPos;
+			unitArray[code].yPos=player.yPos;
+			unitArray[code].zPos=player.zPos;
 		}
 		else{//등록되지 않은 유저라면
-			unitList.Add(player);
-			online[getPlayerCode(player.ID)]=true;
+			unitList.Add(code);
+			online[code]=true;
+			unitArray[code].ID=player.ID;
+			unitArray[code].xPos=player.xPos;
+			unitArray[code].yPos=player.yPos;
+			unitArray[code].zPos=player.zPos;
 		}
+	}
+
+	public void setOffline(int num){
+		online[num]=false;
 	}
 }
