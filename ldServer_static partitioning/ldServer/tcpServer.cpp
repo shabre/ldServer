@@ -18,8 +18,6 @@ bool thread_usable[10000];
 std::list<int> player_sock_list[10];
 int client_sock;
 int numOfDS;
-int numOfZone;
-map *myMap;
 
 pthread_mutex_t mutex;
 pthread_mutex_t r_mutex;
@@ -78,9 +76,7 @@ void sendPacket(int sock, std::queue<struct Pos_packet *> *pQueue, std::queue<ch
 }
 
 void *connect_client(void *arg){
-    int connServer=-1;//연결된 분산서버
-    int connZone=-1;//연결된 존
-    int newZone=-1, newServer=-1;
+    int myServer=-1;//연결된 분산서버
     struct t_arg args=*((struct t_arg *)arg);
     pthread_mutex_unlock(&mutex);
     int nbyte;
@@ -98,8 +94,6 @@ void *connect_client(void *arg){
         
         
         while(pQueue.size()>0){//패킷이 정상적으로 생성되었다면
-            
-            /*
             if(myServer==-1){//분산 서버가 정해지지 않았다면
                 //위치에 따른 조건을 거쳐 분산서버를 정해야함
                 if(strncmp(pQueue.front()->ID,"Player",6)==0)
@@ -135,66 +129,6 @@ void *connect_client(void *arg){
                 }
                  
                 sendPacket(dServer_sock[myServer], &pQueue, &tQueue);
-            }
-             */
-            
-            if(connZone==-1){//zone 할당이 안된 상태라면
-                if(strncmp(pQueue.front()->ID,"Player",6)==0)
-                    client_sock=args.accept_socket;
-                connZone=myMap->getZoneNum(pQueue.front()->xPos, pQueue.front()->yPos, pQueue.front()->zPos);//내 위치가 해당하는 zone num 얻어옴
-                connServer=myMap->getServerNum(connZone);//zone에 해당하는 server를 가져온다
-                printf("player%d connected to the server %d\n",getHashID(pQueue.front()->ID),connServer);
-                player_sock_list[connServer].push_back(args.accept_socket);//클라이언트 소켓넘버 저장
-                connectedServer[getHashID(pQueue.front()->ID)]=connServer;//클라이언트 해시에 분산서버 저장
-                
-                myMap->inputPlayerToZone(connZone, getHashID(pQueue.front()->ID), pQueue.front()->xPos, pQueue.front()->yPos, pQueue.front()->zPos);
-            }
-            
-            else{//현재 클라이언트가 다른 zone으로 이동해야하는지 판단
-                connZone=myMap->getConnectedZone(getHashID(pQueue.front()->ID));
-                connServer=connectedServer[getHashID(pQueue.front()->ID)];
-                if(myMap->getZoneNum(pQueue.front()->xPos, pQueue.front()->yPos, pQueue.front()->zPos)
-                   != connZone){//새로 갱신된 위치가 기존의 zone과 다른 위치의 zone 일시
-                    
-                    newZone=myMap->getZoneNum(pQueue.front()->xPos, pQueue.front()->yPos, pQueue.front()->zPos);
-                    
-                    if(myMap->getServerNum(connZone) != myMap->getServerNum(newZone)){//기존의 zone과 현재의 zone의 서버가 다른경우
-                        //이 경우엔 zone 데이터 이동과 플레이어의 서버이전이 필요하다
-                        //삭제 메세지 생성
-                        /////////////////서버이전
-                        packet=(Pos_packet *)malloc(sizeof(Pos_packet));
-                        packet->ID=(char *)malloc(strlen(pQueue.front()->ID));
-                        strcpy(packet->ID, pQueue.front()->ID);
-                        packet->request=DELETE;
-                        packet->xPos=0;packet->yPos=0;packet->zPos=0;
-                        packet->dLength=strlen(packet->ID);
-                        dQueue.push(packet);
-                        
-                        
-                        if(client_sock!=0)
-                            sendPlayerDelete(client_sock, packet);// 플레이어에게 해당 유저 제거 패킷전송
-                        sendPacket(dServer_sock[connServer], &dQueue, &tQueue);//기존 서버에 해당 유닛 삭제 명령
-                        newServer=myMap->getServerNum(newZone);//새로 이전될 서버 가져옴
-                        printf("client %s server %d changed to %d\n",pQueue.front()->ID,connServer, newServer);
-                        packet=NULL;
-                        
-                        //////////////////존 이전
-                        myMap->playerZoneShift(connZone, newZone, getHashID(pQueue.front()->ID), pQueue.front()->xPos, pQueue.front()->yPos, pQueue.front()->zPos);
-                        
- 
-                        connServer=newServer;
-                        connectedServer[getHashID(pQueue.front()->ID)]=connServer;
-                        
-                    }
-                    else{//기존의 zone과 현재의 zone은 다르나 서버는 같은경우
-                        //zone의 데이터 이동만 필요하다
-                        myMap->playerZoneShift(connZone, newZone, getHashID(pQueue.front()->ID), pQueue.front()->xPos, pQueue.front()->yPos, pQueue.front()->zPos);
-                    }
-                    //printf("client %s zone %d changed to %d\n",pQueue.front()->ID,connZone, newZone);
-                    connZone=newZone;
-                    myMap->putConnectedZone(newZone, getHashID(pQueue.front()->ID));
-                }
-                sendPacket(dServer_sock[connServer], &pQueue, &tQueue);
             }
         }
         
@@ -265,95 +199,8 @@ void *receive_dServer(void *arg){
     pthread_exit(NULL);
 }
 
-std::string intToString(int n)
-{
-    std::stringstream s;
-    s << n;
-    return s.str();
-}
-
-struct Pos_packet *createDeleteMsg(int code){
-    std::string id;
-    struct Pos_packet* packet=(Pos_packet *)malloc(sizeof(Pos_packet));
-    if(code != 1001){
-        id="simulator_"+intToString(code);
-    }
-    else{
-        id="Player"+intToString(code);
-    }
-    packet->ID=(char *)malloc(id.length());
-    strcpy(packet->ID,id.c_str());
-    packet->request=DELETE;
-    packet->xPos=0;packet->yPos=0;packet->zPos=0;
-    packet->dLength=strlen(packet->ID);
-    return packet;
-}
-
-void *dynamicBalancing(void *arg){
-    const int playerWeight=1;
-    const int boundWeight=10;
-    const int closeBound=3;
-    struct Pos_packet *packet;
-    std::queue<struct Pos_packet *> pQueue, dQueue;
-    std::queue<char *> tQueue;
-    std::list<int> codeList;
-    std::list<int>::iterator it;
-    myMap->init_dbalancer(numOfZone, numOfDS, playerWeight, boundWeight , closeBound);
-    
-    int max, min;
-   
-    
-    while(true){
-        
-        sleep(10);//10초마다 밸런싱 시작
-        printf("balancing stated...\n");
-        max=0;
-        min=987654321;
-        
-        /*
-         //server and zone print
-        for(int i=0; i<numOfDS; i++){
-            std::cout<<"server "<<i<<" weight : "<<serverWeight[i]<<std::endl;
-        }
-        for(int i=0; i<numOfZone; i++){
-            std::cout<<"zone "<<i<<" weight : "<<myMap->getZoneWeight(i)<<std::endl;
-        }
-         */
-    
-        myMap->printServerOccup();
-        std::cout<<"bound cost server 0: "<<myMap->getBoundCost(0)<<" server 1: "<<myMap->getBoundCost(1)<<std::endl;
-        std::cout<<"weight server 0: "<<myMap->getServerWeight(0)<<" server 1: "<<myMap->getServerWeight(1)<<std::endl;
-        
-        /*
-        for(int i=0; i<numOfZone; i++){
-            if(myMap->getServerNum(i)==0){
-                std::cout<<"server 0 to 1 shift in zone "<<i<<" costs: "<<myMap->getShiftBoundCost(0, 1, i)<<std::endl;
-            }
-        }
-         */
-        //2번 zone 서버 0->1 / 1->0 으로 계속 변경하는 알고리즘
-        /////////////////서버이전
-        
-        codeList=myMap->getZonePlayerCodeList(0);
-        
-        for(it=codeList.begin(); it!= codeList.end(); it++){
-            packet=createDeleteMsg(*it);
-            dQueue.push(packet);
-        }
-
-        if(client_sock!=0)
-            sendPlayerDelete(client_sock, packet);// 플레이어에게 해당 유저 제거 패킷전송
-        sendPacket(dServer_sock[connServer], &dQueue, &tQueue);//기존 서버에 해당 유닛 삭제 명령
-        newServer=myMap->getServerNum(newZone);//새로 이전될 서버 가져옴
-        printf("client %s server %d changed to %d\n",pQueue.front()->ID,connServer, newServer);
-        packet=NULL;
-    }
-    pthread_exit(NULL);
-}
-
 void tcp_server(int port, int numOfServer){
     numOfDS=numOfServer;
-    numOfZone=9;
     pthread_mutex_init(&mutex, NULL);
     pthread_mutex_init(&r_mutex, NULL);
     for(int i=0; i<numOfServer; i++){
@@ -361,7 +208,7 @@ void tcp_server(int port, int numOfServer){
         printf("distributed Server %d connected..\n",port+i+1);
     }
     
-    myMap=new map(9,numOfServer);
+    
     pthread_t tid_server[10];
     int serverNum[numOfDS];
     for(int i=0; i<numOfServer; i++){
@@ -369,9 +216,6 @@ void tcp_server(int port, int numOfServer){
         serverNum[i]=i;
         pthread_create(&tid_server[i], NULL, receive_dServer, &serverNum[i]);
     }
-    
-    pthread_t tid_balancer;
-    pthread_create(&tid_balancer, NULL, dynamicBalancing, NULL);
     
     int avail;
     

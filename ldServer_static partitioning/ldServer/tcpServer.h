@@ -9,8 +9,6 @@
 #ifndef tcpServer_h
 #define tcpServer_h
 
-#include <algorithm>
-#include <sstream>
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
@@ -28,7 +26,6 @@
 #include "balancer.hpp"
 #include "packetProtocol.h"
 #include "static_partitioning.hpp"
-#include "map.hpp"
 
 
 const char dServerIP[16]="127.0.0.1";
