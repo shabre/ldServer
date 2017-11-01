@@ -7,18 +7,12 @@ class Simulator_main
         ClientNetworking cn=new ClientNetworking();
         cn.connect();
         cn.frameSend("simulator_"+num);
-        /* //쓰레드 작동은 잘됨
-        for(int i=0; i<100; i++){
-            Thread.Sleep(100);
-            Console.WriteLine("simulator_"+num+" Working");
-        }
-        */
         cn.disconnect();
     }
 
     public static void Main(string[] args){
         
-        int multi=100;
+        int multi=200;
 
         ParameterizedThreadStart[] ts=new ParameterizedThreadStart[multi];
         Thread[] tid=new Thread[multi];
@@ -28,11 +22,13 @@ class Simulator_main
             tid[i]=new Thread(ts[i]);
             tid[i].Start(i+1);
             Thread.Sleep(100);
+            Console.WriteLine(i+" simulator connected");
         }
         
 
         for(int i=0; i<multi; i++){
             tid[i].Join();
+            Console.WriteLine(i+" simulator disconnected");
         }
         
         

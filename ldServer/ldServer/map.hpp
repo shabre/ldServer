@@ -25,6 +25,11 @@ struct position{
     float z;
 };
 
+struct neighbor{
+    int serverNum;
+    int zoneNum;
+};
+
 class zone{
 private:
     int numOfMember;
@@ -50,7 +55,7 @@ private:
 public:
     map(int zoneNum, int serverNum);
     void init_dbalancer(int numOfZone, int numOfServer, int playerWeight, int boundaryWeight, int closeBoundWeight);
-    void serverShift(zone myZone, int beforeServer, int afterServer);//서버를 통째로 다른 존으로 이동
+    void serverShift(int zoneNum, int afterServer);//서버를 통째로 다른 존으로 이동
     void playerZoneShift(int beforeZoneNum, int afterZoneNum, int playerCode, float x, float y, float z);//존의 플레이어 하나를 다른존으로 이동
     int getZoneNum(float x, float y, float z);
     void putConnectedZone(int zoneNum, int playerCode);
@@ -63,6 +68,7 @@ public:
     std::list<int> getZonePlayerCodeList(int zoneNum);
     int getBoundCost(int serverNum);
     int getShiftBoundCost(int srcServer, int dstServer, int zoneNum);
+    int getneighbor(int server, std::list<struct neighbor> *nList);
 };
 
 class dynamicBalancer{

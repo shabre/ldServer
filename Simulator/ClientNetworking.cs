@@ -9,7 +9,9 @@ using PacketProtocols;
 
 //서버와의 네트워킹을 담당하는 클래스
 public class ClientNetworking {
- 
+        private const String HOMEIP="27.1.242.15";
+        private const String LOOPIP="127.0.0.1";
+        private String HOSTIP=LOOPIP;
         IPEndPoint ipep;
         Socket client;
         Thread tid;
@@ -18,7 +20,7 @@ public class ClientNetworking {
         PlayerMove player=new PlayerMove();
         //
 	public void connect() {
-                ipep = new IPEndPoint(IPAddress.Parse("27.1.242.15"), 52380);
+                ipep = new IPEndPoint(IPAddress.Parse(HOSTIP), 52380);
                 client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                 client.Connect(ipep);
                 pQueue=new Queue<byte[]>();
@@ -32,7 +34,7 @@ public class ClientNetworking {
 	// Update is called once per frame
 	public void frameSend (String myId) {
                 while(true){
-                        Thread.Sleep(100);
+                        Thread.Sleep(16);
                         
                         short len=0;
                         short request =1;
@@ -63,7 +65,7 @@ public class ClientNetworking {
                 while((nbyte=client.Receive(rbuf))>0){
                         //Pos_Packet rPacket=new Pos_Packet(rbuf);
                         //Console.WriteLine(nbyte+" byte received");
-                        analyzeBuf.bufToPacket(rbuf,nbyte,ref pQueue,ref tQueue);
+                        //analyzeBuf.bufToPacket(rbuf,nbyte,ref pQueue,ref tQueue);
                 }
         }
 }

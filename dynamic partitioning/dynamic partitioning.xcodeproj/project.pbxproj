@@ -7,7 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		6B4E6D231FA356D8000681A7 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6B4E6D221FA356D8000681A7 /* main.cpp */; };
+		6B4E6D231FA356D8000681A7 /* dynamic.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6B4E6D221FA356D8000681A7 /* dynamic.cpp */; };
+		6B4E6D2C1FA35AC8000681A7 /* map.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6B4E6D2A1FA35AC8000681A7 /* map.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -24,7 +25,9 @@
 
 /* Begin PBXFileReference section */
 		6B4E6D1F1FA356D8000681A7 /* dynamic partitioning */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "dynamic partitioning"; sourceTree = BUILT_PRODUCTS_DIR; };
-		6B4E6D221FA356D8000681A7 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
+		6B4E6D221FA356D8000681A7 /* dynamic.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = dynamic.cpp; sourceTree = "<group>"; };
+		6B4E6D2A1FA35AC8000681A7 /* map.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = map.cpp; sourceTree = "<group>"; };
+		6B4E6D2B1FA35AC8000681A7 /* map.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = map.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -57,7 +60,9 @@
 		6B4E6D211FA356D8000681A7 /* dynamic partitioning */ = {
 			isa = PBXGroup;
 			children = (
-				6B4E6D221FA356D8000681A7 /* main.cpp */,
+				6B4E6D221FA356D8000681A7 /* dynamic.cpp */,
+				6B4E6D2A1FA35AC8000681A7 /* map.cpp */,
+				6B4E6D2B1FA35AC8000681A7 /* map.hpp */,
 			);
 			path = "dynamic partitioning";
 			sourceTree = "<group>";
@@ -119,7 +124,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				6B4E6D231FA356D8000681A7 /* main.cpp in Sources */,
+				6B4E6D2C1FA35AC8000681A7 /* map.cpp in Sources */,
+				6B4E6D231FA356D8000681A7 /* dynamic.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

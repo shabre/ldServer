@@ -42,11 +42,20 @@ public class AnalyzeBuf{
                     Array.Copy(prev,1,headBuf,0,HSIZE);
                     restLen=prev[0]-HSIZE;
                     dataLen=BitConverter.ToInt16(headBuf, 2);
-                    data=new byte[dataLen];
-                    Array.Copy(prev,1+HSIZE,data,0,restLen);//템프 버퍼에 남아있는 데이터 만큼을 복사
-                    Array.Copy(buf,0,data,restLen,dataLen-restLen);//버퍼에서 복사해야할 나머지 데이터
-                    pPacket=new Pos_Packet(headBuf,data);
-                    idx+=dataLen-restLen;
+                    if(buf.Length<dataLen-restLen){//버퍼의 길이가 붙여야되는 데이터길이보다 짧을때
+                        rest=new byte[prev[0]+1+buf.Length];
+                        rest[0]=(byte)(restLen+buf.Length);
+                        Array.Copy(prev,1,rest,0,prev[0]);
+                        Array.Copy(buf,0,rest,prev[0]+1,buf.Length);
+                        tQueue.Enqueue(rest);
+                    }
+                    else{
+                        data=new byte[dataLen];
+                        Array.Copy(prev,1+HSIZE,data,0,restLen);//템프 버퍼에 남아있는 데이터 만큼을 복사
+                        Array.Copy(buf,0,data,restLen,dataLen-restLen);//버퍼에서 복사해야할 나머지 데이터
+                        pPacket=new Pos_Packet(headBuf,data);
+                        idx+=dataLen-restLen;
+                    }
                 }
                 //enqbuf=pPacket.packetsToByte();
             }
@@ -76,7 +85,7 @@ public class AnalyzeBuf{
                         return;
                     }
                     else{
-                        data=new byte[dataLen];
+                        data=new byte[dataLen];//오류??
                         Array.Copy(buf, idx, data, 0, dataLen);
                         idx+=dataLen;
                         pPacket=new Pos_Packet(headBuf,data);

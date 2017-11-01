@@ -175,7 +175,7 @@ void *connect_client(void *arg){
                             sendPlayerDelete(client_sock, packet);// 플레이어에게 해당 유저 제거 패킷전송
                         sendPacket(dServer_sock[connServer], &dQueue, &tQueue);//기존 서버에 해당 유닛 삭제 명령
                         newServer=myMap->getServerNum(newZone);//새로 이전될 서버 가져옴
-                        printf("client %s server %d changed to %d\n",pQueue.front()->ID,connServer, newServer);
+                        //printf("client %s server %d changed to %d\n",pQueue.front()->ID,connServer, newServer);
                         packet=NULL;
                         
                         //////////////////존 이전
@@ -289,27 +289,49 @@ struct Pos_packet *createDeleteMsg(int code){
     return packet;
 }
 
-void *dynamicBalancing(void *arg){
-    const int playerWeight=1;
-    const int boundWeight=10;
-    const int closeBound=3;
+void serverShift(int zone ,int prev, int next){
     struct Pos_packet *packet;
     std::queue<struct Pos_packet *> pQueue, dQueue;
     std::queue<char *> tQueue;
     std::list<int> codeList;
     std::list<int>::iterator it;
+    
+    codeList=myMap->getZonePlayerCodeList(zone);
+    
+    for(it=codeList.begin(); it!= codeList.end(); it++){
+        connectedServer[(*it)]=next;
+        packet=createDeleteMsg((*it));
+        if(client_sock!=0)
+            sendPlayerDelete(client_sock, packet);// 플레이어에게 해당 유저 제거 패킷전송
+        dQueue.push(packet);
+    }
+    while(!dQueue.empty())
+        sendPacket(dServer_sock[prev], &dQueue, &tQueue);//기존 서버에 해당 유닛 삭제 명령
+    
+    myMap->serverShift(zone, next);
+    std::cout<<"zone "<< zone<<" server "<<prev<<" -> "<< next<<std::endl;
+}
+
+void *dynamicBalancing(void *arg){
+    const int playerWeight=1;
+    const int boundWeight=10;
+    const int closeBound=3;
+    int connServer;
+    int max, min, maxServer, minServer, avg=0, minWeight=987654321, maxWeight=0;
+    int weight;
+
+
     myMap->init_dbalancer(numOfZone, numOfDS, playerWeight, boundWeight , closeBound);
     
-    int max, min;
-   
+    int count=0;
     
     while(true){
-        
-        sleep(10);//10초마다 밸런싱 시작
-        printf("balancing stated...\n");
         max=0;
         min=987654321;
-        
+        sleep(5);//10초마다 밸런싱 시작
+        printf("balancing strated...\n");
+        std::list<struct neighbor> neighbors;
+        std::list<struct neighbor>::iterator it, min_it;
         /*
          //server and zone print
         for(int i=0; i<numOfDS; i++){
@@ -320,33 +342,62 @@ void *dynamicBalancing(void *arg){
         }
          */
     
-        myMap->printServerOccup();
+        
         std::cout<<"bound cost server 0: "<<myMap->getBoundCost(0)<<" server 1: "<<myMap->getBoundCost(1)<<std::endl;
         std::cout<<"weight server 0: "<<myMap->getServerWeight(0)<<" server 1: "<<myMap->getServerWeight(1)<<std::endl;
         
-        /*
-        for(int i=0; i<numOfZone; i++){
-            if(myMap->getServerNum(i)==0){
-                std::cout<<"server 0 to 1 shift in zone "<<i<<" costs: "<<myMap->getShiftBoundCost(0, 1, i)<<std::endl;
+        //알고리즘
+        //cost 기반
+        //max가 존을 기부하고
+        //min이 존을 다른곳에서 얻어오는형식
+        //가까이 붙어있는 zone중 할당시 효율적인 경우를 계산해서 할당
+        for(int i=0; i<numOfDS; i++){//최대 탐색 알고리즘
+            if(max<myMap->getServerWeight(i)){
+                max=myMap->getServerWeight(i);
+                maxServer=i;
+            }
+            if(min>myMap->getServerWeight(i)){
+                min=myMap->getServerWeight(i);
+                minServer=i;
+            }
+            avg+=myMap->getServerWeight(i);
+        }
+        avg=avg/numOfDS;
+        
+         /////////////////서버이전
+        if(avg*1.5<max){
+            minWeight=987654321;
+            myMap->getneighbor(maxServer, &neighbors);
+            for(it=neighbors.begin(); it!=neighbors.end(); it++){
+                weight=myMap->getShiftBoundCost(maxServer, (*it).serverNum, (*it).zoneNum);
+                if(minWeight>weight){
+                    minWeight=weight;
+                    min_it=it;
+                }
+            }
+            if(neighbors.size()>0){
+                serverShift((*min_it).zoneNum, maxServer, (*min_it).serverNum);
+                std::cout<<"max server shift complete"<<std::endl;
             }
         }
-         */
-        //2번 zone 서버 0->1 / 1->0 으로 계속 변경하는 알고리즘
-        /////////////////서버이전
-        
-        codeList=myMap->getZonePlayerCodeList(0);
-        
-        for(it=codeList.begin(); it!= codeList.end(); it++){
-            packet=createDeleteMsg(*it);
-            dQueue.push(packet);
+        neighbors.clear();
+        if(min*1.5<avg){
+            minWeight=987654321;
+            myMap->getneighbor(minServer, &neighbors);
+            for(it=neighbors.begin(); it!=neighbors.end(); it++){
+                weight=myMap->getShiftBoundCost((*it).serverNum ,minServer, (*it).zoneNum);
+                if(minWeight>weight){
+                    minWeight=weight;
+                    min_it=it;
+                }
+            }
+            if(neighbors.size()>0){
+                serverShift((*min_it).zoneNum, (*min_it).serverNum, minServer);
+                std::cout<<"min server shift complete"<<std::endl;
+            }
         }
-
-        if(client_sock!=0)
-            sendPlayerDelete(client_sock, packet);// 플레이어에게 해당 유저 제거 패킷전송
-        sendPacket(dServer_sock[connServer], &dQueue, &tQueue);//기존 서버에 해당 유닛 삭제 명령
-        newServer=myMap->getServerNum(newZone);//새로 이전될 서버 가져옴
-        printf("client %s server %d changed to %d\n",pQueue.front()->ID,connServer, newServer);
-        packet=NULL;
+        myMap->printServerOccup();
+        neighbors.clear();
     }
     pthread_exit(NULL);
 }

@@ -128,8 +128,8 @@ void map::playerZoneShift(int beforeZoneNum, int afterZoneNum, int playerCode, f
     myZone[afterZoneNum].inputPlayer(playerCode, x, y, z);
 }
 
-void map::serverShift(zone myZone, int beforeServer, int afterServer){
-    
+void map::serverShift(int zoneNum, int afterServer){
+    zoneServer[zoneNum]=afterServer;
 }
 
 int map::getZoneNum(float x, float y, float z){
@@ -192,7 +192,45 @@ int map::getShiftBoundCost(int srcServer, int dstServer, int zoneNum){
     return dBalancer->getAfterShiftBoundCost(srcServer, dstServer, zoneNum, this->zoneServer, this->myZone);
 }
 
-
+int map::getneighbor(int server, std::list<struct neighbor> *nList){
+    int x,y;
+    struct neighbor _neighbor;
+    for(int i=0; i< numOfZone; i++){
+        if(zoneServer[i]!=server){//내 서버가 아닌경우
+            x=i/3;
+            y=i%3;
+            if(x-1>=0){
+                if(zoneServer[(x-1)*3+y]!=server){
+                    _neighbor.serverNum=zoneServer[i];
+                    _neighbor.zoneNum=i;
+                    nList->push_back(_neighbor);
+                }
+            }
+            if(x+1<3){
+                if(zoneServer[(x+1)*3+y]!=server){
+                    _neighbor.serverNum=zoneServer[i];
+                    _neighbor.zoneNum=i;
+                    nList->push_back(_neighbor);
+                }
+            }
+            if(y-1>=0){
+                if(zoneServer[x*3+y-1]!=server){
+                    _neighbor.serverNum=zoneServer[i];
+                    _neighbor.zoneNum=i;
+                    nList->push_back(_neighbor);
+                }
+            }
+            if(y+1<3){
+                if(zoneServer[x*3+y+1]!=server){
+                    _neighbor.serverNum=zoneServer[i];
+                    _neighbor.zoneNum=i;
+                    nList->push_back(_neighbor);
+                }
+            }
+        }
+    }
+    return nList->size();
+}
 
 dynamicBalancer::dynamicBalancer(int numOfZone, int numOfServer, int playerWeight, int boundaryWeight, int closeBoundWeight){
     this->numOfZone=numOfZone;

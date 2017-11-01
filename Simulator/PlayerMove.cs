@@ -11,12 +11,24 @@ struct Position{
 
 //시뮬레이션 플레이어를 움직이도록 만드는 클래스
 public class PlayerMove {
+        private const float x_under_limit=-150.0f;
+        private const float x_upper_limit=150.0f;
+        private const float z_under_limit=-150.0f;
+        private const float z_upper_limit=150.0f;
+
         private Position pos;
-        public double GetRandomNumber(Random random)
+        private double prevDegree=0;
+        public double GetRandomNumber(Random random,double center)
         { 
-                double minimum=-1.0f, maximum=1.0f;
-                
-                return random.NextDouble() * (maximum - minimum) + minimum;
+                double plus=20.0f;
+                double minimum=center-plus, maximum=center+plus;
+                double val=random.NextDouble() * (maximum - minimum) + minimum;
+                if(val>360.0f)
+                        return val-360.0f;
+                else if(val<0.0f)
+                        return val+360.0f;
+                else
+                        return val;
         }
         public float generatePos(){
                 Random random=new Random();
@@ -27,21 +39,24 @@ public class PlayerMove {
 
         public void NextPosition(){
                 float next;
-                Random xrandom=new Random();
-                Random yrandom=new Random();
+                double degree;
+                double angle;
+                double vSin, vCos;
+                Random random=new Random();
+               
                 while(true){
-                        next=(float)GetRandomNumber(xrandom);
-                        if(pos.xPos+next<50.0f && pos.xPos+next>-50.0f){
-                                pos.xPos+=next;
+                        degree=(float)GetRandomNumber(random,prevDegree);
+                        prevDegree=degree;
+                        angle=degree*Math.PI/180;
+
+                        vSin=0.15*Math.Sin(angle);
+                        vCos=0.15*Math.Cos(angle);
+                        if(pos.xPos+vCos<x_upper_limit && pos.xPos+vCos>x_under_limit 
+                        && pos.zPos+vSin<z_upper_limit && pos.zPos+vSin>z_under_limit){
+                                pos.xPos+=(float)vCos;
+                                pos.zPos+=(float)vSin;
                                 break;
                         }           
-                }
-                while(true){
-                        next=(float)GetRandomNumber(yrandom);
-                        if(pos.zPos+next<50.0f && pos.zPos+next>-50.0f){
-                                pos.zPos+=next;
-                                break;
-                        }
                 }
         }
         public PlayerMove(){

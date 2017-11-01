@@ -17,6 +17,6 @@ void sendPlayerDelete(int sock, struct Pos_packet* packet){
         perror("send delete message fail");
     }
     else{
-        printf("delete message %d sent to %s\n",packet->request,packet->ID);
+        //printf("delete message %d sent to %s\n",packet->request,packet->ID);
     }
 }
