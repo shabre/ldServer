@@ -28,6 +28,7 @@
 #include "static_partitioning.hpp"
 #include "map.hpp"
 #include "k_means.hpp"
+#include "benchmark.hpp"
 
 
 

@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		6B1BCF191FC0042200B9EFA9 /* benchmark.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6B1BCF171FC0042200B9EFA9 /* benchmark.cpp */; };
 		6B451D5D1F1B131100858702 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6B451D5C1F1B131100858702 /* main.cpp */; };
 		6B4E6D301FA375AC000681A7 /* map.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6B4E6D2E1FA375AB000681A7 /* map.cpp */; };
 		6B4E6D311FA375AC000681A7 /* makefile in Sources */ = {isa = PBXBuildFile; fileRef = 6B4E6D2F1FA375AB000681A7 /* makefile */; };
@@ -14,7 +15,6 @@
 		6BA9D6B51F88B5470094D13C /* balancer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6BA9D6B31F88B5470094D13C /* balancer.cpp */; };
 		6BDECADE1F20664800602E8D /* analyzeBuf.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6BDECADD1F20664800602E8D /* analyzeBuf.cpp */; };
 		6BDECAE31F20785200602E8D /* tcpServer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6BDECAE11F20785200602E8D /* tcpServer.cpp */; };
-		6BE7438E1F9649BB007148C8 /* static_partitioning.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6BE7438C1F9649BB007148C8 /* static_partitioning.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -30,6 +30,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		6B1BCF171FC0042200B9EFA9 /* benchmark.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = benchmark.cpp; sourceTree = "<group>"; };
+		6B1BCF181FC0042200B9EFA9 /* benchmark.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = benchmark.hpp; sourceTree = "<group>"; };
 		6B451D591F1B131000858702 /* ldServer */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = ldServer; sourceTree = BUILT_PRODUCTS_DIR; };
 		6B451D5C1F1B131100858702 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		6B4E6D2D1FA375AB000681A7 /* map.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = map.hpp; sourceTree = "<group>"; };
@@ -44,8 +46,6 @@
 		6BDECAE01F20670600602E8D /* analyzeBuf.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = analyzeBuf.h; sourceTree = "<group>"; };
 		6BDECAE11F20785200602E8D /* tcpServer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = tcpServer.cpp; sourceTree = "<group>"; };
 		6BDECAE21F20785200602E8D /* tcpServer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = tcpServer.h; sourceTree = "<group>"; };
-		6BE7438C1F9649BB007148C8 /* static_partitioning.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = static_partitioning.cpp; sourceTree = "<group>"; };
-		6BE7438D1F9649BB007148C8 /* static_partitioning.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = static_partitioning.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -91,8 +91,8 @@
 				6BDECAE11F20785200602E8D /* tcpServer.cpp */,
 				6BA9D6B31F88B5470094D13C /* balancer.cpp */,
 				6BA9D6B41F88B5470094D13C /* balancer.hpp */,
-				6BE7438C1F9649BB007148C8 /* static_partitioning.cpp */,
-				6BE7438D1F9649BB007148C8 /* static_partitioning.hpp */,
+				6B1BCF171FC0042200B9EFA9 /* benchmark.cpp */,
+				6B1BCF181FC0042200B9EFA9 /* benchmark.hpp */,
 			);
 			path = ldServer;
 			sourceTree = "<group>";
@@ -155,10 +155,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				6B4E6D301FA375AC000681A7 /* map.cpp in Sources */,
+				6B1BCF191FC0042200B9EFA9 /* benchmark.cpp in Sources */,
 				6B4E6D311FA375AC000681A7 /* makefile in Sources */,
 				6BA6D49B1FBEB77000D38A0E /* k_means.cpp in Sources */,
 				6BDECAE31F20785200602E8D /* tcpServer.cpp in Sources */,
-				6BE7438E1F9649BB007148C8 /* static_partitioning.cpp in Sources */,
 				6BA9D6B51F88B5470094D13C /* balancer.cpp in Sources */,
 				6BDECADE1F20664800602E8D /* analyzeBuf.cpp in Sources */,
 				6B451D5D1F1B131100858702 /* main.cpp in Sources */,

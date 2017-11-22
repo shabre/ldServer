@@ -22,6 +22,7 @@ int client_sock;
 int numOfDS;
 map *myMap;
 KMeans *kmeans;
+benchmark *bench;
 
 pthread_mutex_t mut;
 pthread_mutex_t r_mutex;
@@ -119,6 +120,8 @@ void *connect_client(void *arg){
                 connectedServer[hashID]=myServer;//클라이언트 해시에 분산서버 저장
                 connectedClient.push_back(hashID);
                 myMap->updateOnline(hashID);
+                bench[myServer].incConnect();
+                bench[myServer].incCur();
             }
             else{//현재 클라이언트가 다른 서버로 이전해야하는지에 대한 여부 판단
                 myServer=connectedServer[hashID];
@@ -134,18 +137,23 @@ void *connect_client(void *arg){
                     packet->xPos=0;packet->yPos=0;packet->zPos=0;
                     packet->dLength=strlen(packet->ID);
                     dQueue.push(packet);
-                    
+                    bench[myServer].incDisconnect();
+                    bench[myServer].dcsCur();
                     
                     if(client_sock!=0)
                         sendPlayerDelete(client_sock, packet);// 플레이어에게 해당 유저 제거 패킷전송
                     sendPacket(dServer_sock[myServer], &dQueue, &tQueue);
+                    /*
                     printf("client %s server %d changed to %d\n"
                            ,pQueue.front()->ID,myServer, kmeans->getIDNearestCenter(point));
+                     */
                             //,pQueue.front()->ID,myServer, getRightServer(xPos, yPos, zPos, numOfDS));
                     
                     //myServer=getRightServer(xPos, yPos, zPos, numOfDS);
                     myServer=kmeans->getIDNearestCenter(point);
                     connectedServer[hashID]=myServer;
+                    bench[myServer].incCur();
+                    bench[myServer].incConnect();
                     
                     packet=NULL;
                 }
@@ -216,8 +224,6 @@ void *receive_dServer(void *arg){
             free(pPacket->ID);
             free(pPacket);
         }
-        if(dServer!=0 && dServer!=1)
-            printf("server Num: %d\n", dServer);
     }
     pthread_exit(NULL);
 }
@@ -246,6 +252,12 @@ void *kmeans_clustering(void *arg){
         if(points.size()>=numOfDS)
             kmeans->run(points);
         points.clear();
+        
+        for(int i=0; i<dServer; i++){
+            bench[i].updateAvg();
+            std::cout<<"server "<<i<<" connected:"<<bench[i].getCurConnected()<<" avg connection: "<<bench[i].getAvgConnected()<<
+            " shift: "<<bench[i].getConnected()+bench[i].getDisconnected()<<std::endl;
+        }
     }
     
     pthread_exit(NULL);
@@ -253,6 +265,7 @@ void *kmeans_clustering(void *arg){
 
 void tcp_server(int port, int numOfServer){
     numOfDS=numOfServer;
+    bench= new benchmark[4];
     myMap=new map();
     pthread_mutex_init(&mut, NULL);
     pthread_mutex_init(&r_mutex, NULL);

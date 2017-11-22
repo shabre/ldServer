@@ -24,8 +24,14 @@ int getRightServer(int x, int y, int z, int part){
         printf("not implemented yet");
     }
     else{
-        printf("not implemented yet");
-        exit(0);
+        if(x<0 && z<0)
+            return 0;
+        else if(x<0 && z>=0)
+            return 1;
+        else if(x>=0 && z<0)
+            return 2;
+        else
+            return 3;
     }
     return -1;
 }

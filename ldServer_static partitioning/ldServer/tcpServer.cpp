@@ -193,8 +193,6 @@ void *receive_dServer(void *arg){
             free(pPacket->ID);
             free(pPacket);
         }
-        if(dServer!=0 && dServer!=1)
-            printf("server Num: %d\n", dServer);
     }
     pthread_exit(NULL);
 }
